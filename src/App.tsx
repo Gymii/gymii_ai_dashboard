@@ -5,19 +5,36 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./store/auth-context";
+import { ErrorProvider } from "./store/error-context";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { QueryProvider } from "./services/queryClient";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { ReactNode } from "react";
+import ErrorDemo from "./components/ErrorDemo";
 
 import Cost from "./pages/Cost";
 
 // Protected route component
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, initError, isLoading } = useAuth();
+  // If there's an initialization error, still render the children
+  // The error will be displayed by the error dialog
+  if (initError) {
+    return <>{children}</>;
+  }
+  // Show loading or spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
+    console.log("not authenticated", isAuthenticated);
     return <Navigate to="/login" replace />;
   }
 
@@ -25,6 +42,8 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 function AppRoutes() {
+  const { initError, isAuthenticated } = useAuth();
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -55,7 +74,10 @@ function AppRoutes() {
           path="reports"
           element={<div className="p-4">Reports page coming soon</div>}
         />
+        <Route path="error-demo" element={<ErrorDemo />} />
       </Route>
+      {/* Allow access to error demo without authentication if there's an init error */}
+      {initError && <Route path="/error-demo" element={<ErrorDemo />} />}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
@@ -63,13 +85,17 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    <ErrorProvider>
+      <ErrorBoundary>
         <QueryProvider>
-          <AppRoutes />
+          <AuthProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </AuthProvider>
         </QueryProvider>
-      </AuthProvider>
-    </Router>
+      </ErrorBoundary>
+    </ErrorProvider>
   );
 }
 

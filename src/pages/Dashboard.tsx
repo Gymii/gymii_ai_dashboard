@@ -96,7 +96,7 @@ export default function Dashboard() {
       : "0.0";
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8 ">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>

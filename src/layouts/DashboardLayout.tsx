@@ -1,15 +1,40 @@
+"use client";
+
 import { useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../store/auth-context";
 import {
-  HiHome,
-  HiUsers,
-  HiCurrencyDollar,
-  HiChartBar,
-  HiDocumentReport,
-  HiMenu,
-  HiX,
-} from "react-icons/hi";
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+  TransitionChild,
+} from "@headlessui/react";
+import {
+  Bars3Icon,
+  BellIcon,
+  CalendarIcon,
+  ChartPieIcon,
+  Cog6ToothIcon,
+  DocumentDuplicateIcon,
+  FolderIcon,
+  HomeIcon,
+  UsersIcon,
+  XMarkIcon,
+  CurrencyDollarIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/20/solid";
+
+function classNames(...classes: (string | boolean | undefined)[]): string {
+  return classes.filter(Boolean).join(" ");
+}
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,178 +51,304 @@ export default function DashboardLayout() {
     {
       name: "Dashboard",
       path: "/dashboard",
-      icon: HiHome,
+      icon: HomeIcon,
+      current: location.pathname === "/dashboard",
     },
     {
       name: "Users",
       path: "/dashboard/users",
-      icon: HiUsers,
+      icon: UsersIcon,
+      current: location.pathname === "/dashboard/users",
     },
     {
       name: "Revenue",
       path: "/dashboard/revenue",
-      icon: HiCurrencyDollar,
+      icon: CurrencyDollarIcon,
+      current: location.pathname === "/dashboard/revenue",
     },
     {
       name: "Conversion",
       path: "/dashboard/conversion",
-      icon: HiChartBar,
+      icon: ChartPieIcon,
+      current: location.pathname === "/dashboard/conversion",
     },
     {
       name: "Cost",
       path: "/dashboard/cost",
-      icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+      icon: CurrencyDollarIcon,
+      current: location.pathname === "/dashboard/cost",
     },
     {
       name: "Reports",
       path: "/dashboard/reports",
-      icon: HiDocumentReport,
+      icon: DocumentTextIcon,
+      current: location.pathname === "/dashboard/reports",
     },
   ];
 
+  const userNavigation = [
+    { name: "Your profile", href: "#" },
+    { name: "Sign out", onClick: handleLogout },
+  ];
+
   return (
-    <div className="flex h-full bg-gray-100">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        ></div>
-      )}
+    <>
+      <div className="h-full bg-white">
+        <Dialog
+          open={sidebarOpen}
+          onClose={setSidebarOpen}
+          className="relative z-50 md:hidden"
+        >
+          <DialogBackdrop
+            transition
+            className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-[closed]:opacity-0"
+          />
 
-      {/* Mobile sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out md:hidden ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between h-16 px-6 border-b">
-          <Link to="/dashboard" className="text-xl font-bold text-primary-600">
-            Gymii Admin
-          </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label="Close sidebar"
-          >
-            <HiX className="w-6 h-6" />
-          </button>
-        </div>
-
-        <nav className="px-4 py-4 overflow-y-auto">
-          <ul className="space-y-2">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-4 py-2 text-sm rounded-md ${
-                    location.pathname === item.path
-                      ? "bg-primary-100 text-primary-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <item.icon
-                    className={`w-5 h-5 mr-3 ${
-                      location.pathname === item.path
-                        ? "text-primary-700"
-                        : "text-gray-500"
-                    }`}
-                  />
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-
-      {/* Desktop sidebar */}
-      <div className="hidden md:block md:w-64 md:flex-shrink-0">
-        <div className="flex flex-col h-full bg-white border-r">
-          <div className="flex items-center h-16 px-6 border-b">
-            <Link
-              to="/dashboard"
-              className="text-xl font-bold text-primary-600"
+          <div className="fixed inset-0 flex">
+            <DialogPanel
+              transition
+              className="relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-[closed]:-translate-x-full"
             >
-              Gymii Admin
-            </Link>
+              <TransitionChild>
+                <div className="absolute left-full top-0 flex w-16 justify-center pt-5 duration-300 ease-in-out data-[closed]:opacity-0">
+                  <button
+                    type="button"
+                    onClick={() => setSidebarOpen(false)}
+                    className="-m-2.5 p-2.5"
+                  >
+                    <span className="sr-only">Close sidebar</span>
+                    <XMarkIcon
+                      aria-hidden="true"
+                      className="size-6 text-white"
+                    />
+                  </button>
+                </div>
+              </TransitionChild>
+              {/* Sidebar component */}
+              <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
+                <div className="flex h-16 shrink-0 items-center">
+                  <Link
+                    to="/dashboard"
+                    className="text-xl font-bold text-primary-600"
+                  >
+                    Gymii Admin
+                  </Link>
+                </div>
+                <nav className="flex flex-1 flex-col">
+                  <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                    <li>
+                      <ul role="list" className="-mx-2 space-y-1">
+                        {navigation.map((item) => (
+                          <li key={item.name}>
+                            <Link
+                              to={item.path}
+                              className={classNames(
+                                item.current
+                                  ? "bg-primary-100 text-primary-700"
+                                  : "text-gray-700 hover:bg-gray-50 hover:text-primary-600",
+                                "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                              )}
+                            >
+                              <item.icon
+                                aria-hidden="true"
+                                className={classNames(
+                                  item.current
+                                    ? "text-primary-700"
+                                    : "text-gray-400 group-hover:text-primary-600",
+                                  "size-6 shrink-0"
+                                )}
+                              />
+                              {item.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                    <li className="mt-auto">
+                      <button
+                        onClick={handleLogout}
+                        className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                      >
+                        <Cog6ToothIcon
+                          aria-hidden="true"
+                          className="size-6 shrink-0 text-gray-400 group-hover:text-primary-600"
+                        />
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </DialogPanel>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <nav className="px-4 py-4 space-y-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`flex items-center px-4 py-2 text-sm rounded-md ${
-                    location.pathname === item.path
-                      ? "bg-primary-100 text-primary-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <item.icon
-                    className={`w-5 h-5 mr-3 ${
-                      location.pathname === item.path
-                        ? "text-primary-700"
-                        : "text-gray-500"
-                    }`}
-                  />
-                  {item.name}
-                </Link>
-              ))}
+        </Dialog>
+
+        {/* Static sidebar for desktop */}
+        <div className="hidden md:fixed md:inset-y-0 md:z-50 md:flex md:w-64 md:flex-col">
+          {/* Sidebar component */}
+          <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+            <div className="flex h-16 shrink-0 items-center">
+              <Link
+                to="/dashboard"
+                className="text-xl font-bold text-primary-600"
+              >
+                Gymii Admin
+              </Link>
+            </div>
+            <nav className="flex flex-1 flex-col">
+              <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                <li>
+                  <ul role="list" className="-mx-2 space-y-1">
+                    {navigation.map((item) => (
+                      <li key={item.name}>
+                        <Link
+                          to={item.path}
+                          className={classNames(
+                            item.current
+                              ? "bg-primary-100 text-primary-700"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-primary-600",
+                            "group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+                          )}
+                        >
+                          <item.icon
+                            aria-hidden="true"
+                            className={classNames(
+                              item.current
+                                ? "text-primary-700"
+                                : "text-gray-400 group-hover:text-primary-600",
+                              "size-6 shrink-0"
+                            )}
+                          />
+                          {item.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+                <li className="mt-auto">
+                  <button
+                    onClick={handleLogout}
+                    className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                  >
+                    <Cog6ToothIcon
+                      aria-hidden="true"
+                      className="size-6 shrink-0 text-gray-400 group-hover:text-primary-600"
+                    />
+                    Logout
+                  </button>
+                </li>
+              </ul>
             </nav>
           </div>
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="flex flex-col flex-1 w-0">
-        {/* Top header */}
-        <header className="flex items-center justify-between h-16 px-4 bg-white border-b shadow-sm md:px-6">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="text-gray-500 md:hidden"
-            aria-label="Open sidebar"
-          >
-            <HiMenu className="w-6 h-6" />
-          </button>
+        <div className="md:pl-64">
+          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="-m-2.5 p-2.5 text-gray-700 md:hidden"
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Bars3Icon aria-hidden="true" className="size-6" />
+            </button>
 
-          <div className="flex items-center">
-            <div className="mr-4 text-sm text-gray-700">
-              {user?.name || "Admin User"}
-            </div>
-            <div className="relative">
-              <button
-                type="button"
-                className="flex text-sm rounded-full focus:outline-none"
-                id="user-menu-button"
-                aria-label="User menu"
-              >
-                <img
-                  className="w-8 h-8 rounded-full"
-                  src={
-                    user?.avatar ||
-                    "https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff"
-                  }
-                  alt="User avatar"
+            {/* Separator */}
+            <div
+              aria-hidden="true"
+              className="h-6 w-px bg-gray-200 md:hidden"
+            />
+
+            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+              <form action="#" method="GET" className="grid flex-1 grid-cols-1">
+                <input
+                  name="search"
+                  type="search"
+                  placeholder="Search"
+                  aria-label="Search"
+                  className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-none placeholder:text-gray-400 sm:text-sm/6"
                 />
-              </button>
-              <button
-                onClick={handleLogout}
-                className="ml-3 text-sm text-primary-600 hover:underline"
-              >
-                Logout
-              </button>
+                <MagnifyingGlassIcon
+                  aria-hidden="true"
+                  className="pointer-events-none col-start-1 row-start-1 size-5 self-center text-gray-400"
+                />
+              </form>
+              <div className="flex items-center gap-x-4 lg:gap-x-6">
+                <button
+                  type="button"
+                  className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+                >
+                  <span className="sr-only">View notifications</span>
+                  <BellIcon aria-hidden="true" className="size-6" />
+                </button>
+
+                {/* Separator */}
+                <div
+                  aria-hidden="true"
+                  className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"
+                />
+
+                {/* Profile dropdown */}
+                <Menu as="div" className="relative">
+                  <MenuButton className="-m-1.5 flex items-center p-1.5">
+                    <span className="sr-only">Open user menu</span>
+                    <img
+                      alt={`${user?.name || "User"} avatar`}
+                      src={
+                        user?.avatar ||
+                        "https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff"
+                      }
+                      className="size-8 rounded-full bg-gray-50"
+                    />
+                    <span className="hidden lg:flex lg:items-center">
+                      <span
+                        aria-hidden="true"
+                        className="ml-4 text-sm/6 font-semibold text-gray-900"
+                      >
+                        {user?.name || "Admin User"}
+                      </span>
+                      <ChevronDownIcon
+                        aria-hidden="true"
+                        className="ml-2 size-5 text-gray-400"
+                      />
+                    </span>
+                  </MenuButton>
+                  <MenuItems
+                    transition
+                    className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                  >
+                    {userNavigation.map((item) => (
+                      <MenuItem key={item.name}>
+                        {item.onClick ? (
+                          <button
+                            onClick={item.onClick}
+                            className="block w-full text-left px-3 py-1 text-sm/6 text-gray-900 data-[focus]:bg-gray-50 data-[focus]:outline-none"
+                          >
+                            {item.name}
+                          </button>
+                        ) : (
+                          <a
+                            href={item.href}
+                            className="block px-3 py-1 text-sm/6 text-gray-900 data-[focus]:bg-gray-50 data-[focus]:outline-none"
+                          >
+                            {item.name}
+                          </a>
+                        )}
+                      </MenuItem>
+                    ))}
+                  </MenuItems>
+                </Menu>
+              </div>
             </div>
           </div>
-        </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6">
-            <Outlet />
-          </div>
-        </main>
+          <main className="py-10 bg-white">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
