@@ -5,6 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./store/auth-context";
+import { QueryProvider } from "./services/queryClient";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -64,7 +65,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <QueryProvider>
+          <AppRoutes />
+        </QueryProvider>
       </AuthProvider>
     </Router>
   );

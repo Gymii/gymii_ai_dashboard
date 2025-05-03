@@ -29,3 +29,8 @@ export interface ChartData {
     tension?: number;
   }[];
 }
+
+export interface SimpleChartData {
+  labels: string[];
+  data: number[];
+}
