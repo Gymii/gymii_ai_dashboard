@@ -1,0 +1,88 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2 # Fetch the last 2 commits to compare changes
+
+      - name: Get GitHub Actions IP
+        id: ip
+        uses: haythem/public-ip@v1.2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2 # Change to your AWS region
+
+      - name: Add GitHub Actions IP to Security Group
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --region us-east-2 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
+
+      - name: Build and Deploy Application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_PROD }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+
+            cd /home/ec2-user
+            git clone https://github.com/gymii-ai/gymii_dashboard.git
+            cd gymii_dashboard
+            # Update codebase
+            git fetch origin
+            git reset --hard origin/main
+            # Install frontend dependencies and build
+            npm ci
+            npm run build
+            
+            # Install backend dependencies if not already done
+            pip install -r backend/requirements.txt
+            
+            # Install PM2 if not already installed
+            if ! command -v pm2 &> /dev/null; then
+              npm install -g pm2
+            fi
+            
+            # Stop any running processes (if they exist)
+            pm2 stop gymii-dashboard || true
+            pm2 stop gymii-frontend || true
+            
+            # Start backend in production mode
+            cd backend
+            export FLASK_ENV=production
+            export FLASK_APP=run.py
+            export PORT=5500
+            
+            # Start with PM2 for process management
+            pm2 start run.py --name gymii-dashboard --interpreter python3
+            
+            # Serve frontend with PM2 instead of nginx
+            cd ..
+            pm2 serve dist 3000 --name gymii-dashboard --spa
+
+      - name: Remove GitHub Actions IP from Security Group
+        if: always() # This ensures the step runs even if previous steps fail
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --region us-east-2 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
