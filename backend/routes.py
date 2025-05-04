@@ -15,7 +15,9 @@ analytics_bp = Blueprint("analytics", __name__)
 ADMIN_EMAILS = [
     "zzyzsy0516321@gmail.com",
     "zzyzsy0516321@yahoo.com",
-    # Add other admin emails as needed
+    "hkselinali@gmail.com",
+    "alex.taic@gmail.com",
+    "rna.jng@gmail.com",
 ]
 
 
@@ -36,7 +38,6 @@ def admin_required(f, special_privilege_required=False):
             # Verify the JWT token from Supabase
             # The JWT_SECRET should be set in your environment variables (from Supabase project)
             jwt_secret = os.environ.get("SUPABASE_JWT_SECRET")
-            print("jwt_secret", jwt_secret)
             if not jwt_secret:
                 return jsonify({"error": "Server configuration error"}), 500
 

@@ -32,6 +32,8 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/20/solid";
 import { useUserInfo } from "../hooks/useUser";
+import AnalyticsRefreshButton from "../components/AnalyticsRefreshButton";
+
 function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
@@ -261,20 +263,12 @@ export default function DashboardLayout() {
             />
 
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <form action="#" method="GET" className="grid flex-1 grid-cols-1">
-                <input
-                  name="search"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                  className="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-none placeholder:text-gray-400 sm:text-sm/6"
-                />
-                <MagnifyingGlassIcon
-                  aria-hidden="true"
-                  className="pointer-events-none col-start-1 row-start-1 size-5 self-center text-gray-400"
-                />
-              </form>
-              <div className="flex items-center gap-x-4 lg:gap-x-6">
+              {/* Analytics Refresh Button positioned to the left */}
+              <div className="flex items-center">
+                <AnalyticsRefreshButton />
+              </div>
+
+              <div className="flex flex-1 justify-end items-center gap-x-4 lg:gap-x-6">
                 <button
                   type="button"
                   className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"

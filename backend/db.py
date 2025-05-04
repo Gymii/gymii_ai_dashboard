@@ -4,13 +4,31 @@ from sqlalchemy.orm import sessionmaker
 import os
 import pandas as pd
 from dotenv import load_dotenv
+from sqlalchemy.pool import QueuePool
 
 # Load environment variables
 load_dotenv()
 
-# Create database connections
-analytic_db_engine = create_engine(os.getenv("ANALYTIC_DB_CONNECTION_STRING"))
-main_db_engine = create_engine(os.getenv("MAIN_DB_CONNECTION_STRING"))
+# Create database connections with enhanced connection pooling
+analytic_db_engine = create_engine(
+    os.getenv("ANALYTIC_DB_CONNECTION_STRING"),
+    poolclass=QueuePool,
+    pool_size=5,
+    max_overflow=10,
+    pool_timeout=30,
+    pool_recycle=1800,  # Recycle connections after 30 minutes
+    pool_pre_ping=True,  # Check connection validity before using it
+)
+
+main_db_engine = create_engine(
+    os.getenv("MAIN_DB_CONNECTION_STRING"),
+    poolclass=QueuePool,
+    pool_size=5,
+    max_overflow=10,
+    pool_timeout=30,
+    pool_recycle=1800,  # Recycle connections after 30 minutes
+    pool_pre_ping=True,  # Check connection validity before using it
+)
 
 # Create session factories
 AnalyticSessionLocal = sessionmaker(
@@ -44,8 +62,14 @@ def execute_query(query, params=None, is_analytics_db=True):
     """Execute a raw SQL query and return the results as a pandas DataFrame."""
     engine = analytic_db_engine if is_analytics_db else main_db_engine
     with engine.connect() as connection:
-        result = connection.execute(text(query), params or {})
-        return pd.DataFrame(result.fetchall(), columns=result.keys())
+        try:
+            result = connection.execute(text(query), params or {})
+            return pd.DataFrame(result.fetchall(), columns=result.keys())
+        except Exception as e:
+            print(f"Error executing query: {e}")
+            # Close and dispose connection on error to ensure clean reconnect
+            connection.close()
+            raise
 
 
 def check_connection():

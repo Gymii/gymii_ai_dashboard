@@ -2,7 +2,6 @@ import React from "react";
 import StatCard from "../components/StatCard";
 import ChartCard from "../components/ChartCard";
 import { PieChart, BarChart } from "../components/Charts";
-import AnalyticsRefreshButton from "../components/AnalyticsRefreshButton";
 import { useUserMetrics } from "../hooks/useKPI";
 import {
   HiUserGroup,
@@ -104,7 +103,6 @@ export default function Dashboard() {
             Overview of key metrics and performance indicators
           </p>
         </div>
-        <AnalyticsRefreshButton />
       </div>
 
       {/* Key Metrics */}
