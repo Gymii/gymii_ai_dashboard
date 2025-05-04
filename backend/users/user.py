@@ -36,4 +36,10 @@ def get_users():
 
     # Use 'index' orient with user_id as index
     users_df = users_df.set_index("user_id")
-    return users_df.to_dict(orient="index")
+    users_dict = users_df.to_dict(orient="index")
+
+    # Add user_id as an attribute to each user object
+    for user_id, user_data in users_dict.items():
+        user_data["id"] = user_id
+
+    return users_dict

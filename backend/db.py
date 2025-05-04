@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 import os
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy.pool import QueuePool
+from contextlib import contextmanager
+from flask import g
 
 # Load environment variables
 load_dotenv()
@@ -36,8 +38,61 @@ AnalyticSessionLocal = sessionmaker(
 )
 MainSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=main_db_engine)
 
+# Create scoped sessions for thread safety
+AnalyticSession = scoped_session(AnalyticSessionLocal)
+MainSession = scoped_session(MainSessionLocal)
+
 # Base class for models
 Base = declarative_base()
+
+
+# Flask request context session management
+def get_main_db():
+    if "main_db" not in g:
+        g.main_db = MainSessionLocal()
+    return g.main_db
+
+
+def get_analytic_db():
+    if "analytic_db" not in g:
+        g.analytic_db = AnalyticSessionLocal()
+    return g.analytic_db
+
+
+def close_main_db(e=None):
+    db = g.pop("main_db", None)
+
+    if db is not None:
+        if e:
+            db.rollback()
+        else:
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+                raise
+        db.close()
+
+
+def close_analytic_db(e=None):
+    db = g.pop("analytic_db", None)
+
+    if db is not None:
+        if e:
+            db.rollback()
+        else:
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+                raise
+        db.close()
+
+
+def init_app(app):
+    """Initialize Flask app with database session management."""
+    app.teardown_appcontext(close_main_db)
+    app.teardown_appcontext(close_analytic_db)
 
 
 def get_analytic_db_session():
@@ -56,6 +111,34 @@ def get_main_db_session():
         yield db
     finally:
         db.close()
+
+
+@contextmanager
+def main_db_session():
+    """Context manager for main database session."""
+    session = MainSessionLocal()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@contextmanager
+def analytic_db_session():
+    """Context manager for analytics database session."""
+    session = AnalyticSessionLocal()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def execute_query(query, params=None, is_analytics_db=True):
@@ -91,3 +174,13 @@ def check_connection():
         status["main_db_error"] = str(e)
 
     return status
+
+
+# Function to initialize the database schema
+def init_db():
+    """Initialize database schema."""
+    # Import all models to ensure they are registered with Base
+    import models
+
+    # Create all tables
+    Base.metadata.create_all(bind=main_db_engine)

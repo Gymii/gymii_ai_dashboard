@@ -11,9 +11,19 @@ import {
   HandThumbUpIcon,
   HeartIcon,
   XMarkIcon,
+  TrashIcon,
+  PencilIcon,
 } from "@heroicons/react/20/solid";
-import { RawUser } from "../hooks/useKPI";
+import { RawUser, useRawUserData } from "../hooks/useKPI";
 import { format } from "date-fns";
+import {
+  useAdminComments,
+  useAddAdminComment,
+  useUpdateAdminComment,
+  useDeleteAdminComment,
+  AdminComment,
+} from "../hooks/useAdminComments";
+import { useAuth } from "../store/auth-context";
 
 // Mood selection options for comments
 const moods = [
@@ -62,38 +72,12 @@ const moods = [
 ];
 
 // Sample activity data - would be replaced with real data
+// TODO: Replace with real user activity data from API
 const sampleActivityData = [
   { id: 1, action: "Completed onboarding", date: "2023-12-21T10:23:00Z" },
   { id: 2, action: "Subscription renewed", date: "2024-01-15T08:45:00Z" },
   { id: 3, action: "Added dietary preferences", date: "2024-01-18T14:12:00Z" },
   { id: 4, action: "Updated profile", date: "2024-01-25T11:30:00Z" },
-];
-
-// Define type for comments
-interface Comment {
-  id: number;
-  text: string;
-  author: string;
-  date: string;
-  mood: string | null;
-}
-
-// Sample comments - would be replaced with real data
-const sampleComments: Comment[] = [
-  {
-    id: 1,
-    text: "User reported difficulty with meal planning feature",
-    author: "Support Team",
-    date: "2024-01-20T09:10:00Z",
-    mood: "sad",
-  },
-  {
-    id: 2,
-    text: "Follow-up call scheduled for next week",
-    author: "Account Manager",
-    date: "2024-01-22T15:45:00Z",
-    mood: "happy",
-  },
 ];
 
 // Helper function to classify comments by mood
@@ -112,22 +96,77 @@ interface UserDetailViewProps {
 export default function UserDetailView({ user }: UserDetailViewProps) {
   const [selected, setSelected] = useState(moods[5]);
   const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState(sampleComments);
+  const { user: currentUser } = useAuth();
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [editingMood, setEditingMood] = useState(moods[5]);
+
+  // Fetch comments
+  const { data: comments = [], isLoading: commentsLoading } = useAdminComments(
+    user.id
+  );
+
+  // Mutations
+  const addComment = useAddAdminComment();
+  const updateComment = useUpdateAdminComment();
+  const deleteComment = useDeleteAdminComment();
+  const { data: users } = useRawUserData();
 
   const handlePostComment = () => {
     if (!commentText.trim()) return;
 
-    const newComment: Comment = {
-      id: comments.length + 1,
-      text: commentText,
-      author: "You",
-      date: new Date().toISOString(),
-      mood: selected.value,
-    };
+    addComment.mutate(
+      {
+        userId: user.id,
+        text: commentText,
+        mood: selected.value,
+      },
+      {
+        onSuccess: () => {
+          setCommentText("");
+          setSelected(moods[5]); // Reset mood
+        },
+      }
+    );
+  };
 
-    setComments([newComment, ...comments]);
-    setCommentText("");
-    setSelected(moods[5]); // Reset mood
+  const handleStartEdit = (comment: AdminComment) => {
+    setEditingCommentId(comment.id);
+    setEditingText(comment.text);
+    setEditingMood(getMoodData(comment.mood));
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingText("");
+    setEditingMood(moods[5]);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingCommentId || !editingText.trim()) return;
+
+    updateComment.mutate(
+      {
+        commentId: editingCommentId,
+        text: editingText,
+        mood: editingMood.value,
+        userId: user.id,
+      },
+      {
+        onSuccess: () => {
+          handleCancelEdit();
+        },
+      }
+    );
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      deleteComment.mutate({
+        commentId,
+        userId: user.id,
+      });
+    }
   };
 
   return (
@@ -252,7 +291,7 @@ export default function UserDetailView({ user }: UserDetailViewProps) {
           <div className="flex items-start space-x-4">
             <div className="shrink-0">
               <div className="inline-block size-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
-                You
+                {currentUser?.email?.charAt(0) || "A"}
               </div>
             </div>
             <div className="min-w-0 flex-1">
@@ -335,7 +374,7 @@ export default function UserDetailView({ user }: UserDetailViewProps) {
                                     )}
                                   />
                                 </div>
-                                <span className="ml-3 block truncate font-medium">
+                                <span className="ml-3 block truncate font-medium text-gray-900">
                                   {mood.name}
                                 </span>
                               </div>
@@ -350,9 +389,10 @@ export default function UserDetailView({ user }: UserDetailViewProps) {
                   <button
                     type="button"
                     onClick={handlePostComment}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    disabled={addComment.isPending || !commentText.trim()}
+                    className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Post
+                    {addComment.isPending ? "Posting..." : "Post"}
                   </button>
                 </div>
               </div>
@@ -361,44 +401,158 @@ export default function UserDetailView({ user }: UserDetailViewProps) {
 
           {/* Existing Comments */}
           <div className="mt-6 space-y-4">
-            {comments.map((comment) => {
-              const moodData = getMoodData(comment.mood);
-              return (
-                <div key={comment.id} className="flex items-start space-x-4">
-                  <div className="shrink-0">
-                    <div className="inline-block size-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
-                      {comment.author.charAt(0)}
-                    </div>
-                  </div>
-                  <div className="min-w-0 flex-1 bg-gray-50 rounded-lg p-4">
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {comment.author}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {format(new Date(comment.date), "MMM d, yyyy h:mm a")}
-                        </p>
+            {commentsLoading ? (
+              <p className="text-center text-gray-500">Loading comments...</p>
+            ) : comments.length === 0 ? (
+              <p className="text-center text-gray-500">No comments yet</p>
+            ) : (
+              comments.map((comment) => {
+                const moodData = getMoodData(comment.mood);
+                const isEditing = editingCommentId === comment.id;
+
+                return (
+                  <div key={comment.id} className="flex items-start space-x-4">
+                    <div className="shrink-0">
+                      <div className="inline-block size-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
+                        {users?.[comment.author_id]?.first_name?.charAt(0) ||
+                          "A"}
                       </div>
-                      {comment.mood && (
-                        <div
-                          className={classNames(
-                            getMoodData(comment.mood).bgColor,
-                            "flex size-8 items-center justify-center rounded-full"
-                          )}
-                        >
-                          <moodData.icon
-                            aria-hidden="true"
-                            className="size-5 shrink-0 text-white"
-                          />
+                    </div>
+                    <div className="min-w-0 flex-1 bg-gray-50 rounded-lg p-4">
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {users?.[comment.author_id]?.first_name || "Admin"}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {format(
+                              new Date(comment.created_at),
+                              "MMM d, yyyy h:mm a"
+                            )}
+                          </p>
                         </div>
+                        <div className="flex space-x-2">
+                          {comment.mood && !isEditing && (
+                            <div
+                              className={classNames(
+                                getMoodData(comment.mood).bgColor,
+                                "flex size-8 items-center justify-center rounded-full"
+                              )}
+                            >
+                              <moodData.icon
+                                aria-hidden="true"
+                                className="size-5 shrink-0 text-white"
+                              />
+                            </div>
+                          )}
+                          <button
+                            onClick={() => handleStartEdit(comment)}
+                            className="text-gray-500 hover:text-gray-700"
+                            aria-label="Edit comment"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="text-red-500 hover:text-red-700"
+                            aria-label="Delete comment"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {isEditing ? (
+                        <div className="mt-2">
+                          <textarea
+                            rows={3}
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="block bg-white w-full resize-none border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 p-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm/6"
+                            aria-label="Edit comment"
+                            placeholder="Edit your comment..."
+                          />
+                          <div className="mt-2 flex items-center justify-between">
+                            <Listbox
+                              value={editingMood}
+                              onChange={setEditingMood}
+                            >
+                              <div className="relative">
+                                <Listbox.Button className="relative inline-flex items-center space-x-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                  <span
+                                    className={classNames(
+                                      editingMood.bgColor,
+                                      "flex size-5 items-center justify-center rounded-full"
+                                    )}
+                                  >
+                                    <editingMood.icon
+                                      aria-hidden="true"
+                                      className="size-3 shrink-0 text-white"
+                                    />
+                                  </span>
+                                  <span>{editingMood.name}</span>
+                                </Listbox.Button>
+
+                                <Listbox.Options className="absolute z-10 mt-1 w-60 rounded-lg bg-white py-3 text-base shadow outline outline-1 outline-black/5 data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:w-64 sm:text-sm">
+                                  {moods.map((mood) => (
+                                    <Listbox.Option
+                                      key={mood.value || "none"}
+                                      value={mood}
+                                      className="cursor-default select-none bg-white px-3 py-2 data-[focus]:relative data-[focus]:bg-gray-100 data-[focus]:outline-none"
+                                    >
+                                      <div className="flex items-center">
+                                        <div
+                                          className={classNames(
+                                            mood.bgColor,
+                                            "flex size-8 items-center justify-center rounded-full"
+                                          )}
+                                        >
+                                          <mood.icon
+                                            aria-hidden="true"
+                                            className={classNames(
+                                              mood.iconColor,
+                                              "size-5 shrink-0"
+                                            )}
+                                          />
+                                        </div>
+                                        <span className="ml-3 block truncate font-medium text-gray-900">
+                                          {mood.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </div>
+                            </Listbox>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={handleCancelEdit}
+                                className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleSaveEdit}
+                                disabled={
+                                  updateComment.isPending || !editingText.trim()
+                                }
+                                className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {updateComment.isPending ? "Saving..." : "Save"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-sm text-gray-700">
+                          {comment.text}
+                        </p>
                       )}
                     </div>
-                    <p className="mt-2 text-sm text-gray-700">{comment.text}</p>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>

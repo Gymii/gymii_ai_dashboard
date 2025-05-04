@@ -63,3 +63,34 @@ export async function postData<T>(endpoint: string, data?: any): Promise<T> {
 
   return response.json();
 }
+
+export async function putData<T>(endpoint: string, data?: any): Promise<T> {
+  const headers = await getAuthHeaders();
+
+  const response = await fetchImplementation(`${API_URL}${endpoint}`, {
+    method: "PUT",
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function deleteData<T>(endpoint: string): Promise<T> {
+  const headers = await getAuthHeaders();
+
+  const response = await fetchImplementation(`${API_URL}${endpoint}`, {
+    method: "DELETE",
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}

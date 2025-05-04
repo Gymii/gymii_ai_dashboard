@@ -22,9 +22,20 @@ export default function UserManagementTable({
             <li
               key={user.id}
               className="relative py-5 hover:bg-gray-50 cursor-pointer"
-              onClick={() => onUserClick && onUserClick(user)}
             >
-              <div className="px-4 sm:px-6 lg:px-8">
+              <div
+                className="px-4 sm:px-6 lg:px-8"
+                onClick={() => onUserClick && onUserClick(user)}
+                tabIndex={0}
+                role="button"
+                aria-label={`View details for ${user.first_name || "User"}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onUserClick && onUserClick(user);
+                  }
+                }}
+              >
                 <div className="mx-auto flex max-w-4xl justify-between gap-x-6">
                   <div className="flex min-w-0 gap-x-4">
                     <div className="size-12 flex-none rounded-full bg-gray-50 flex items-center justify-center text-lg font-semibold text-gray-500">
