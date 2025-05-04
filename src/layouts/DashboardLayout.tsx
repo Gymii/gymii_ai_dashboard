@@ -31,7 +31,7 @@ import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/20/solid";
-
+import { useUserInfo } from "../hooks/useUser";
 function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
 }
@@ -39,6 +39,7 @@ function classNames(...classes: (string | boolean | undefined)[]): string {
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { data: userInfo, isLoading } = useUserInfo();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -293,7 +294,7 @@ export default function DashboardLayout() {
                   <MenuButton className="-m-1.5 flex items-center p-1.5">
                     <span className="sr-only">Open user menu</span>
                     <img
-                      alt={`${user?.name || "User"} avatar`}
+                      alt={`${userInfo?.first_name || "User"} avatar`}
                       src={
                         user?.avatar ||
                         "https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff"
@@ -305,7 +306,7 @@ export default function DashboardLayout() {
                         aria-hidden="true"
                         className="ml-4 text-sm/6 font-semibold text-gray-900"
                       >
-                        {user?.name || "Admin User"}
+                        {userInfo?.first_name || "Admin User"}
                       </span>
                       <ChevronDownIcon
                         aria-hidden="true"

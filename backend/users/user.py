@@ -18,10 +18,6 @@ from data_store import query_cache
 
 
 def get_users():
-    """
-    Calculate user retention metrics and return as a Python dictionary
-    that can be JSON serialized.
-    """
     users_df = query_cache["users"]
 
     # Handle NaT values by replacing them with None

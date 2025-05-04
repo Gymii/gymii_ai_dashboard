@@ -15,6 +15,7 @@ import { ReactNode } from "react";
 import ErrorDemo from "./components/ErrorDemo";
 
 import Cost from "./pages/Cost";
+import UserManagement from "./pages/UserManagement";
 
 // Protected route component
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -58,10 +59,7 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         {/* Add other dashboard routes as needed */}
         <Route path="cost" element={<Cost />} />
-        <Route
-          path="users"
-          element={<div className="p-4">Users page coming soon</div>}
-        />
+        <Route path="users" element={<UserManagement></UserManagement>} />
         <Route
           path="revenue"
           element={<div className="p-4">Revenue page coming soon</div>}

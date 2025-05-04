@@ -1,6 +1,5 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchData, postData } from "../services/api";
-import { queryClient } from "../services/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { fetchData } from "../services/api";
 
 // Types for raw API response
 export interface RawUser {

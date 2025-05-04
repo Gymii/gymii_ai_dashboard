@@ -33,7 +33,6 @@ def admin_required(f, special_privilege_required=False):
         token = auth_header.split("Bearer ")[1]
 
         try:
-            print("token", token)
             # Verify the JWT token from Supabase
             # The JWT_SECRET should be set in your environment variables (from Supabase project)
             jwt_secret = os.environ.get("SUPABASE_JWT_SECRET")
@@ -75,6 +74,7 @@ def refresh_queries():
         refresh_all_data()
         return jsonify({"message": "Queries refreshed successfully"}), 200
     except Exception as e:
+        print("error", e)
         return jsonify({"error": str(e)}), 500
 
 
