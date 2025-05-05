@@ -3,6 +3,9 @@ const API_URL = isProduction
   ? "https://staging.gymii.ai/dashboard/api"
   : "http://localhost:5500/api";
 
+console.log("API_URL", API_URL);
+console.log("isProduction", isProduction);
+console.log("MODE", import.meta.env.MODE);
 // Use mock fetch in development mode
 const fetchImplementation = window.fetch;
 
