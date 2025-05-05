@@ -1,7 +1,7 @@
-import { mockFetch } from "../mocks/mockApi";
-import { createClient } from "@supabase/supabase-js";
-
-const API_URL = "http://127.0.0.1:5500/api";
+const isProduction = import.meta.env.MODE === "production";
+const API_URL = isProduction
+  ? "https://staging.gymii.ai/dashboard/api"
+  : "http://localhost:5500/api";
 
 // Use mock fetch in development mode
 const fetchImplementation = window.fetch;

@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/api": {
           target: isProduction
-            ? "https://staging.gymii.ai:5500"
-            : "http://localhost:5500",
+            ? "https://staging.gymii.ai/dashboard/api"
+            : "https://localhost:5500/api",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
         },
