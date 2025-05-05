@@ -41,41 +41,38 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-
+            # Ensure Node.js and npm are installed
+            if ! command -v node &> /dev/null; then
+              curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash -
+              sudo yum install -y nodejs
+            fi
+            
             cd /home/ec2-user
-            git clone https://github.com/gymii-ai/gymii_dashboard.git
-            cd gymii_dashboard
+            cd gymii_ai_dashboard
             # Update codebase
             git fetch origin
             git reset --hard origin/main
+            
             # Install frontend dependencies and build
-            npm ci
+            npm install
+            
+            # Set host environment variables for Vite
+            export VITE_ALLOWED_HOSTS=staging.gymii.ai
+            
+            # Build with production environment
             npm run build
             
             # Install backend dependencies if not already done
             pip install -r backend/requirements.txt
-            
-            # Install PM2 if not already installed
-            if ! command -v pm2 &> /dev/null; then
-              npm install -g pm2
-            fi
-            
-            # Stop any running processes (if they exist)
-            pm2 stop gymii-dashboard || true
-            pm2 stop gymii-frontend || true
             
             # Start backend in production mode
             cd backend
             export FLASK_ENV=production
             export FLASK_APP=run.py
             export PORT=5500
+            sudo systemctl restart gymii-dashboard.service
             
-            # Start with PM2 for process management
-            pm2 start run.py --name gymii-dashboard --interpreter python3
-            
-            # Serve frontend with PM2 instead of nginx
-            cd ..
-            pm2 serve dist 3000 --name gymii-dashboard --spa
+          
 
       - name: Remove GitHub Actions IP from Security Group
         if: always() # This ensures the step runs even if previous steps fail

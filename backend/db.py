@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from flask import g
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Create database connections with enhanced connection pooling
 analytic_db_engine = create_engine(
