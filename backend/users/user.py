@@ -6,6 +6,8 @@ import os
 current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(current_dir)
 
+from db import get_analytic_db
+
 # View path
 print(sys.path)
 

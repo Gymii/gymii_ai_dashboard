@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request, g
-from db import get_main_db
+from db import get_main_db, get_analytic_db
 from models import User, AdminComment
 from functools import wraps
 import os
 import jwt
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
+from analytics_model import ScreenVisitTimeAnalysis
+from itertools import groupby
+from operator import attrgetter
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -173,3 +176,91 @@ def get_current_admin():
     return jsonify(
         {"email": admin_email, "message": f"Authenticated as admin: {admin_email}"}
     )
+
+
+@admin_bp.route("/users/<int:user_id>/activity", methods=["GET"])
+@admin_required
+def get_user_activity(user_id):
+    """
+    Get the 10 most recent screen visits for a specific user.
+
+    Args:
+        user_id (int): The ID of the user
+
+    Returns:
+        JSON: A list of the 10 most recent screen visits
+    """
+    # First check if user exists in main db
+    db = get_analytic_db()
+
+    try:
+        # Query the ScreenVisitTimeAnalysis view
+        recent_activity = (
+            db.query(ScreenVisitTimeAnalysis)
+            .filter(ScreenVisitTimeAnalysis.user_id == user_id)
+            .order_by(ScreenVisitTimeAnalysis.screen_start_time.desc())
+            .limit(20)
+            .all()
+        )
+
+        # Convert to list of dictionaries
+        activity_list = [activity.to_dict() for activity in recent_activity]
+
+        return jsonify(activity_list)
+    except Exception as e:
+        return jsonify({"error": f"Error fetching user activity: {str(e)}"}), 500
+
+
+@admin_bp.route("/users/<int:user_id>/sessions", methods=["GET"])
+@admin_required
+def get_user_sessions(user_id):
+    """
+    Get the user activity grouped by session.
+
+    Args:
+        user_id (int): The ID of the user
+
+    Returns:
+        JSON: A list of sessions, each containing a list of screen visits
+    """
+    db = get_analytic_db()
+
+    try:
+        # Query the ScreenVisitTimeAnalysis view
+        all_activity = (
+            db.query(ScreenVisitTimeAnalysis)
+            .filter(ScreenVisitTimeAnalysis.user_id == user_id)
+            .order_by(
+                ScreenVisitTimeAnalysis.session_id,
+                ScreenVisitTimeAnalysis.screen_start_time,
+            )
+            .all()
+        )
+
+        # Group by session_id
+        sessions = []
+        for session_id, group in groupby(all_activity, attrgetter("session_id")):
+            activities = list(group)
+
+            if not activities:
+                continue
+
+            # Get session metadata from the first activity
+            first_activity = activities[0]
+
+            session = {
+                "session_id": session_id,
+                "session_start_time": first_activity.session_start_time.isoformat(),
+                "session_end_time": first_activity.session_end_time.isoformat(),
+                "visit_date": first_activity.visit_date.isoformat(),
+                "activities": [activity.to_dict() for activity in activities],
+            }
+
+            sessions.append(session)
+
+        # Sort sessions by start time (descending)
+        sessions.sort(key=lambda x: x["session_start_time"], reverse=True)
+
+        return jsonify(sessions)
+    except Exception as e:
+        return jsonify({"error": f"Error fetching user sessions: {str(e)}"}), 500

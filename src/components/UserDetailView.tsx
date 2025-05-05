@@ -24,6 +24,7 @@ import {
   AdminComment,
 } from "../hooks/useAdminComments";
 import { useAuth } from "../store/auth-context";
+import UserActivitySessions from "./UserActivitySessions";
 
 // Mood selection options for comments
 const moods = [
@@ -69,15 +70,6 @@ const moods = [
     iconColor: "text-gray-400",
     bgColor: "bg-transparent",
   },
-];
-
-// Sample activity data - would be replaced with real data
-// TODO: Replace with real user activity data from API
-const sampleActivityData = [
-  { id: 1, action: "Completed onboarding", date: "2023-12-21T10:23:00Z" },
-  { id: 2, action: "Subscription renewed", date: "2024-01-15T08:45:00Z" },
-  { id: 3, action: "Added dietary preferences", date: "2024-01-18T14:12:00Z" },
-  { id: 4, action: "Updated profile", date: "2024-01-25T11:30:00Z" },
 ];
 
 // Helper function to classify comments by mood
@@ -246,33 +238,11 @@ export default function UserDetailView({ user }: UserDetailViewProps) {
             Activity
           </h3>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            User's recent actions.
+            User's recent actions and sessions.
           </p>
         </div>
-        <div className="border-t border-gray-200">
-          <ul role="list" className="divide-y divide-gray-200">
-            {sampleActivityData.map((activity) => (
-              <li key={activity.id} className="px-4 py-4 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {activity.action}
-                  </p>
-                  <div className="ml-2 flex-shrink-0 flex">
-                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                      {format(new Date(activity.date), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="sm:flex">
-                    <p className="flex items-center text-sm text-gray-500">
-                      {format(new Date(activity.date), "h:mm a")}
-                    </p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <div className="px-4 py-5 sm:p-6">
+          <UserActivitySessions userId={parseInt(user.id)} />
         </div>
       </div>
 
