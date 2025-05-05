@@ -15,7 +15,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An error occurred during login"
@@ -53,7 +53,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input"
+              className="input text-gray-900"  
               placeholder="admin@example.com"
               required
             />
@@ -71,7 +71,7 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input"
+              className="input text-gray-900"  
               placeholder="password"
               required
             />
