@@ -61,6 +61,7 @@ jobs:
             
             # Build with production environment
             npm run build
+            sudo chmod -R 755 /home/ec2-user/gymii_ai_dashboard/dist
             
             # Install backend dependencies if not already done
             pip install -r backend/requirements.txt
