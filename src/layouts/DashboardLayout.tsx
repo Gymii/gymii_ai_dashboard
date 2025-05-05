@@ -53,39 +53,39 @@ export default function DashboardLayout() {
   const navigation = [
     {
       name: "Dashboard",
-      path: "/dashboard",
+      path: "/",
       icon: HomeIcon,
-      current: location.pathname === "/dashboard",
+      current: location.pathname === "/" || location.pathname === "",
     },
     {
       name: "Users",
-      path: "/dashboard/users",
+      path: "/users",
       icon: UsersIcon,
-      current: location.pathname === "/dashboard/users",
+      current: location.pathname.startsWith("/users"),
     },
     {
       name: "Revenue",
-      path: "/dashboard/revenue",
+      path: "/revenue",
       icon: CurrencyDollarIcon,
-      current: location.pathname === "/dashboard/revenue",
+      current: location.pathname === "/revenue",
     },
     {
       name: "Conversion",
-      path: "/dashboard/conversion",
+      path: "/conversion",
       icon: ChartPieIcon,
-      current: location.pathname === "/dashboard/conversion",
+      current: location.pathname === "/conversion",
     },
     {
       name: "Cost",
-      path: "/dashboard/cost",
+      path: "/cost",
       icon: CurrencyDollarIcon,
-      current: location.pathname === "/dashboard/cost",
+      current: location.pathname === "/cost",
     },
     {
       name: "Reports",
-      path: "/dashboard/reports",
+      path: "/reports",
       icon: DocumentTextIcon,
-      current: location.pathname === "/dashboard/reports",
+      current: location.pathname === "/reports",
     },
   ];
 
@@ -130,10 +130,7 @@ export default function DashboardLayout() {
               {/* Sidebar component */}
               <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                 <div className="flex h-16 shrink-0 items-center">
-                  <Link
-                    to="/dashboard"
-                    className="text-xl font-bold text-primary-600"
-                  >
+                  <Link to="/" className="text-xl font-bold text-primary-600">
                     Gymii Admin
                   </Link>
                 </div>
@@ -191,10 +188,7 @@ export default function DashboardLayout() {
           {/* Sidebar component */}
           <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
             <div className="flex h-16 shrink-0 items-center">
-              <Link
-                to="/dashboard"
-                className="text-xl font-bold text-primary-600"
-              >
+              <Link to="/" className="text-xl font-bold text-primary-600">
                 Gymii Admin
               </Link>
             </div>

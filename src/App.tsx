@@ -50,7 +50,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route
-        path="/dashboard"
+        path="/"
         element={
           <ProtectedRoute>
             <DashboardLayout />
@@ -78,7 +78,7 @@ function AppRoutes() {
       </Route>
       {/* Allow access to error demo without authentication if there's an init error */}
       {initError && <Route path="/error-demo" element={<ErrorDemo />} />}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
@@ -89,7 +89,7 @@ function App() {
       <ErrorBoundary>
         <QueryProvider>
           <AuthProvider>
-            <Router>
+            <Router basename="/dashboard">
               <AppRoutes />
             </Router>
           </AuthProvider>
