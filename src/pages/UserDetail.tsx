@@ -11,7 +11,7 @@ export default function UserDetail() {
   // If no user ID is provided, redirect to the user list
   useEffect(() => {
     if (!userId) {
-      navigate("/dashboard/users");
+      navigate("/users");
     }
   }, [userId, navigate]);
 
@@ -42,7 +42,7 @@ export default function UserDetail() {
     return (
       <div>
         <button
-          onClick={() => navigate("/dashboard/users")}
+          onClick={() => navigate("/users")}
           className="inline-flex items-center mb-6 px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           ← Back to User List
@@ -62,7 +62,7 @@ export default function UserDetail() {
   return (
     <div>
       <button
-        onClick={() => navigate("/dashboard/users")}
+        onClick={() => navigate("/users")}
         className="inline-flex items-center mb-6 px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
         ← Back to User List
