@@ -44,7 +44,7 @@ export default function UserManagement() {
 
   const handleUserClick = (user: RawUser) => {
     console.log(user);
-    navigate(`/dashboard/users/${user.id}`);
+    navigate(`/users/${user.id}`);
   };
 
   const handleSearchChange = (value: string) => {
