@@ -2,14 +2,29 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import UserManagementTable from "../components/UserManagementTable";
 import Pagination from "../components/Pagination";
+import SortFilter, { SortOption } from "../components/SortFilter";
 import { useRawUserData, RawUser } from "../hooks/useKPI";
 
 const ITEMS_PER_PAGE = 10;
+
+const SORT_OPTIONS: SortOption[] = [
+  {
+    id: "onboarding",
+    label: "Sort by Onboarding Time",
+    field: "created_at",
+  },
+  {
+    id: "lastActive",
+    label: "Sort by Last Active",
+    field: "last_active",
+  },
+];
 
 export default function UserManagement() {
   const { data: rawUserData, isLoading, isError } = useRawUserData();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeSort, setActiveSort] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const users = useMemo(() => {
@@ -30,12 +45,33 @@ export default function UserManagement() {
     );
   }, [users, searchTerm]);
 
-  // Pagination logic - applied after filtering
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  // Apply sorting if enabled
+  const sortedAndFilteredUsers = useMemo(() => {
+    if (!activeSort) return filteredUsers;
+
+    const sortOption = SORT_OPTIONS.find((option) => option.id === activeSort);
+    if (!sortOption) return filteredUsers;
+
+    return [...filteredUsers].sort((a, b) => {
+      const dateA = new Date(
+        a[sortOption.field as keyof RawUser] as string
+      ).getTime();
+      const dateB = new Date(
+        b[sortOption.field as keyof RawUser] as string
+      ).getTime();
+      return dateB - dateA; // Sort in descending order (newest first)
+    });
+  }, [filteredUsers, activeSort]);
+
+  // Pagination logic - applied after filtering and sorting
+  const totalPages = Math.ceil(sortedAndFilteredUsers.length / ITEMS_PER_PAGE);
   const paginatedUsers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredUsers, currentPage]);
+    return sortedAndFilteredUsers.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
+  }, [sortedAndFilteredUsers, currentPage]);
 
   // Reset to first page when search term changes
   useMemo(() => {
@@ -49,6 +85,10 @@ export default function UserManagement() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+  };
+
+  const handleSortChange = (sortField: string | null) => {
+    setActiveSort(sortField);
   };
 
   if (isLoading) {
@@ -83,28 +123,31 @@ export default function UserManagement() {
         </div>
       </div>
 
-      <div className="mb-4 relative">
-        <input
-          type="text"
-          placeholder="Search users..."
-          className="w-full bg-white rounded-md border-0 py-2 pl-4 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-          value={searchTerm}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-          <svg
-            className="h-5 w-5 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-              clipRule="evenodd"
-            />
-          </svg>
+      <div className="mb-4 space-y-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search users..."
+            className="w-full bg-white rounded-md border-0 py-2 pl-4 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
         </div>
+        <SortFilter options={SORT_OPTIONS} onSortChange={handleSortChange} />
       </div>
 
       <UserManagementTable
@@ -112,7 +155,7 @@ export default function UserManagement() {
         onUserClick={handleUserClick}
       />
 
-      {filteredUsers.length === 0 ? (
+      {sortedAndFilteredUsers.length === 0 ? (
         <div className="py-10 text-center text-gray-500">
           No users found matching "{searchTerm}"
         </div>
@@ -121,7 +164,7 @@ export default function UserManagement() {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
-            totalItems={filteredUsers.length}
+            totalItems={sortedAndFilteredUsers.length}
             itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={setCurrentPage}
           />
