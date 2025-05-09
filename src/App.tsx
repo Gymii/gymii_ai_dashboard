@@ -62,18 +62,18 @@ function AppRoutes() {
         <Route path="cost" element={<Cost />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="users/:userId" element={<UserDetail />} />
-        <Route
+        {/* <Route
           path="revenue"
           element={<div className="p-4">Revenue page coming soon</div>}
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="conversion"
           element={<div className="p-4">Conversion page coming soon</div>}
         />
         <Route
           path="reports"
           element={<div className="p-4">Reports page coming soon</div>}
-        />
+        /> */}
         <Route path="error-demo" element={<ErrorDemo />} />
       </Route>
       {/* Allow access to error demo without authentication if there's an init error */}

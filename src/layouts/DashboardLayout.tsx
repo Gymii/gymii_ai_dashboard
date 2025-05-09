@@ -63,30 +63,30 @@ export default function DashboardLayout() {
       icon: UsersIcon,
       current: location.pathname.startsWith("/users"),
     },
-    {
-      name: "Revenue",
-      path: "/revenue",
-      icon: CurrencyDollarIcon,
-      current: location.pathname === "/revenue",
-    },
-    {
-      name: "Conversion",
-      path: "/conversion",
-      icon: ChartPieIcon,
-      current: location.pathname === "/conversion",
-    },
+    // {
+    //   name: "Revenue",
+    //   path: "/revenue",
+    //   icon: CurrencyDollarIcon,
+    //   current: location.pathname === "/revenue",
+    // },
+    // {
+    //   name: "Conversion",
+    //   path: "/conversion",
+    //   icon: ChartPieIcon,
+    //   current: location.pathname === "/conversion",
+    // },
     {
       name: "Cost",
       path: "/cost",
       icon: CurrencyDollarIcon,
       current: location.pathname === "/cost",
     },
-    {
-      name: "Reports",
-      path: "/reports",
-      icon: DocumentTextIcon,
-      current: location.pathname === "/reports",
-    },
+    // {
+    //   name: "Reports",
+    //   path: "/reports",
+    //   icon: DocumentTextIcon,
+    //   current: location.pathname === "/reports",
+    // },
   ];
 
   const userNavigation = [
