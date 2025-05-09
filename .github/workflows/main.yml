@@ -72,6 +72,7 @@ jobs:
             export FLASK_APP=run.py
             export PORT=5500
             sudo systemctl restart gymii-dashboard.service
+            sudo systemctl restart nginx
             
           
 
