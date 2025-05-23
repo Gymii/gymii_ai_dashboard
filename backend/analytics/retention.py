@@ -74,7 +74,7 @@ def get_user_retention_by_cohort():
     user_df["created_date"] = user_df["created_at"].dt.date
 
     # Remove rows where last active date is null
-    user_df = user_df[user_df["last_active"].notna()]
+    user_df = user_df[user_df["dietary_preferences"].notna()]
 
     cohorts = user_df.groupby("created_date")["user_id"].apply(list).to_dict()
 
