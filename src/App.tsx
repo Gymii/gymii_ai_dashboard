@@ -17,6 +17,7 @@ import ErrorDemo from "./components/ErrorDemo";
 import Cost from "./pages/Cost";
 import UserManagement from "./pages/UserManagement";
 import UserDetail from "./pages/UserDetail";
+import Retention from "./pages/Retention";
 
 // Protected route component
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -62,6 +63,7 @@ function AppRoutes() {
         <Route path="cost" element={<Cost />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="users/:userId" element={<UserDetail />} />
+        <Route path="retention" element={<Retention />} />
         {/* <Route
           path="revenue"
           element={<div className="p-4">Revenue page coming soon</div>}
