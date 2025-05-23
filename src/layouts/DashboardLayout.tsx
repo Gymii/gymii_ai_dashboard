@@ -63,6 +63,12 @@ export default function DashboardLayout() {
       icon: UsersIcon,
       current: location.pathname.startsWith("/users"),
     },
+    {
+      name: "Retention",
+      path: "/retention",
+      icon: ChartPieIcon,
+      current: location.pathname === "/retention",
+    },
     // {
     //   name: "Revenue",
     //   path: "/revenue",

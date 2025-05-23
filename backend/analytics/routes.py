@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from analytics.retention import get_user_retention
+from analytics.retention import get_user_retention, get_user_retention_by_cohort
 from users.user import get_users
 import pandas as pd
 from data_store import refresh_all_data
@@ -86,6 +86,17 @@ def user_retention():
     try:
         # Now get_user_retention returns a dictionary that jsonify can handle
         retention_data = get_user_retention()
+        return jsonify(retention_data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@analytics_bp.route("/retention_by_cohort", methods=["GET"])
+@admin_required
+def user_retention_by_cohort():
+    """Get user retention data by cohort."""
+    try:
+        retention_data = get_user_retention_by_cohort()
         return jsonify(retention_data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
